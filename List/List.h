@@ -1,6 +1,7 @@
 #pragma once
 
 #include <malloc.h>
+#include <new>
 
 #pragma warning(disable : 6011)
 
@@ -28,23 +29,30 @@ public:
 			return *this;
 		}
 
-		bool operator==(const Iterator& iterator) noexcept
+		Iterator& operator--() noexcept
+		{
+			_node = _node->_prev;
+			return *this;
+		}
+
+		bool operator==(const Iterator& iterator) const noexcept
 		{
 			return _node == iterator._node;
 		}
 
-		bool operator!=(const Iterator& iterator) noexcept
+		bool operator!=(const Iterator& iterator) const noexcept
 		{
 			return _node != iterator._node;
 		}
 
-		T& operator*() noexcept
+		T& operator*() const noexcept
 		{
 			return _node->_data;
 		}
 
 	private:
 		Node* _node;
+		friend class List <T>;
 	};
 
 public:
@@ -72,7 +80,16 @@ public:
 		_tail->_next = nullptr;
 	}
 
-	~List() noexcept {}
+	List(List<T>& list) = delete;
+	List(List<T>&& list) = delete;
+
+	~List() noexcept
+	{
+		free(_head);
+	}
+
+	List<T>& operator=(List<T>& list) = delete;
+	List<T>& operator=(List<T>&& list) = delete;
 
 	size_t size(void) const noexcept
 	{
@@ -82,6 +99,39 @@ public:
 	bool empty(void) const noexcept
 	{
 		return 0 == _size;
+	}
+
+	template<typename... Args>
+	Iterator emplace(const Iterator& it, Args&&... args) noexcept
+	{
+		Node* node = static_cast<Node*>(malloc(sizeof(Node)));
+		new(node) T( std::forward<Args>(args)... );
+
+		Node* temp = it._node;
+
+		node->_prev = temp->_prev;
+		node->_next = temp;
+
+		temp->_prev->_next = node;
+		temp->_prev = node;
+
+		++_size;
+
+		return Iterator(node);
+	}
+
+	Iterator erase(const Iterator& it) noexcept
+	{
+		Node* temp = it._node;
+
+		temp->_prev->_next = temp->_next;
+		temp->_next->_prev = temp->_prev;
+
+		delete it._node;
+
+		--_size;
+
+		return Iterator(temp);
 	}
 
 private:
