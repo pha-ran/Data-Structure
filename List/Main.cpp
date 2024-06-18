@@ -37,7 +37,7 @@ void Test(void)
 	my.emplace(my.end(), 4, 5);
 	Print();
 
-	my.erase(++my.begin());
+	List<CTest>::Iterator it = my.erase(++my.begin());
 	Print();
 
 	my.erase(--my.end());

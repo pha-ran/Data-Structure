@@ -123,6 +123,7 @@ public:
 	Iterator erase(const Iterator& it) noexcept
 	{
 		Node* temp = it._node;
+		Iterator next(temp->_next);
 
 		temp->_prev->_next = temp->_next;
 		temp->_next->_prev = temp->_prev;
@@ -131,7 +132,7 @@ public:
 
 		--_size;
 
-		return Iterator(temp);
+		return next;
 	}
 
 private:
